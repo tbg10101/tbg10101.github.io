@@ -1,0 +1,79 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>D&D 5e Explosive Damage Calculator</title>
+  <meta name="description" content="Calculate the dame for any explosive in D&D.">
+  <meta name="keywords" content="d&d,5e,explosion,explosive,damage,calculator">
+  <meta name="author" content="Tristan Bellman-Greenwood">
+<script>
+var poundsDynamite = 1;
+
+function onSliderChanged(newValue) {
+  newValue = newValue * 0.01;
+
+  poundsDynamite = 1 + newValue * newValue * newValue * newValue * newValue * newValue * newValue * newValue * newValue * newValue;
+  poundsDynamite = Math.floor(poundsDynamite);
+  var poundsDynamiteDisplay = document.getElementById("dynamitePoundsDisplay");
+  poundsDynamiteDisplay.innerHTML = "Dynamite pounds: " + poundsDynamite;
+  
+  var tonsTnt = poundsDynamite / 1.25 / 2000;
+  var tonsTntDisplay = document.getElementById("tntTonsDisplay");
+
+  var tonsTntLabel = " tons";
+
+  if (tonsTnt > 1000) {
+    tonsTnt = tonsTnt / 1000;
+    tonsTntLabel = " kilotons";
+  }
+
+  if (tonsTnt > 1000) {
+    tonsTnt = tonsTnt / 1000;
+    tonsTntLabel = " megatons";
+  }
+
+  tonsTntDisplay.innerHTML = "TNT equivalent: " + tonsTnt.toFixed(4) + tonsTntLabel;
+
+  var damageRollDisplay = document.getElementById("damageRollDisplay");
+  var diceCount = 3 * poundsDynamite;
+  damageRollDisplay.innerHTML = "Damage roll: " + diceCount + "d6 bludgeoning damage";
+}
+
+function rollDi(sides) {
+  return 1 + Math.floor(Math.random() * sides);
+}
+
+async function onRollClicked() {
+  var damageDisplay = document.getElementById("damageDisplay");
+  var damage = 0;
+  var diceTotal = 3 * poundsDynamite;
+
+  for (var i = 0; i < diceTotal; i++) {
+    damage = damage + rollDi(6);
+
+    if (i % 10000000 == 0) {
+      var percentComplete = (i / diceTotal) * 100;
+      damageDisplay.innerHTML = damage + " (" + percentComplete.toFixed(2) + "%)";
+      await scheduler.yield();
+    }
+  }
+
+  damageDisplay.innerHTML = damage;
+}
+</script>
+</head>
+<body style="background-color:DarkSlateGrey">
+<div>
+  <p style="color:White">According to the 5e rules 1 pound of dynamyte does 3d6 damage: <a href="https://www.dndbeyond.com/equipment/200-dynamite-stick">source</a></p>
+  <p style="color:White">Each additional pound adds 1d6 (up to 10d6) and blast radius by 5 feet. (up to 20 [additional?] feet)</p>
+  <p style="color:White">So it seems like you can only fit 10 pounds in a 5'x5' square and only the first 5 sticks contribute to the blast radius.</p>
+  <p style="color:White">But what if you could fit more explosive power into the same volume as a single stick of dynamite?</p>
+  <p style="color:White">NOTE: this only calculates the damage directly adjacent to the explosive device. Damage would decrease with range.</p>
+  <input type='range' min='99' max='1380' value='100' id='slider' style="width:100%" oninput="onSliderChanged(this.value)"></input>
+  <p id="dynamitePoundsDisplay" style="color:White">Dynamite pounds: 1</p>
+  <p id="tntTonsDisplay" style="color:White">TNT equivalent: 0.0004 tons</p>
+  <p id="damageRollDisplay" style="color:White">Damage roll: 3d6 bludgeoning damage</p>
+  <button onclick="onRollClicked()">Roll</button>
+  <p id="damageDisplay" style="color:White"></p>
+</div>
+</body>
+</html>
